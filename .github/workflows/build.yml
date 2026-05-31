@@ -16,7 +16,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-with-api: '3.10'
+        python-version: '3.10'
 
     - name: Install Buildozer Dependencies
       run: |
@@ -33,13 +33,16 @@ jobs:
 
     - name: Customize Buildozer Spec for Gemini App
       run: |
-        # यहाँ हम buildozer.spec फ़ाइल में ऐप का नाम और रिक्वायरमेंट्स ऑटोमैटिक अपडेट कर रहे हैं
         sed -i 's/title = My Application/title = Gemini App/' buildozer.spec
         sed -i 's/package.name = myapp/package.name = geminiapp/' buildozer.spec
         sed -i 's/requirements = python3,kivy/requirements = python3,kivy,google-generativeai/' buildozer.spec
 
     - name: Build APK with Buildozer
-      run: yes | buildozer -v android debug
+      run: |
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
+        buildozer android licenses
+        buildozer -v android debug
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 

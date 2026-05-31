@@ -39,10 +39,7 @@ jobs:
 
     - name: Build APK with Buildozer
       run: |
-        mkdir -p ~/.android
-        touch ~/.android/repositories.cfg
-        buildozer android licenses
-        buildozer -v android debug
+        yes | buildozer android debug
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 

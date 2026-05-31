@@ -1,0 +1,50 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-with-api: '3.10'
+
+    - name: Install Buildozer Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libncursesw5-dev libsqlite3-dev ukwm libssl-dev libffi-dev libgstreamer1.0-dev glib-2.0-dev libcairo2-dev libpango1.0-dev libgl1-mesa-dev libgles2-mesa-dev libgstreamer-plugins-base1.0-dev testdisk
+
+    - name: Install Buildozer and Cython
+      run: |
+        pip install --upgrade pip
+        pip install buildozer cython virtualenv
+
+    - name: Initialize Buildozer
+      run: buildozer init
+
+    - name: Customize Buildozer Spec for Gemini App
+      run: |
+        # यहाँ हम buildozer.spec फ़ाइल में ऐप का नाम और रिक्वायरमेंट्स ऑटोमैटिक अपडेट कर रहे हैं
+        sed -i 's/title = My Application/title = Gemini App/' buildozer.spec
+        sed -i 's/package.name = myapp/package.name = geminiapp/' buildozer.spec
+        sed -i 's/requirements = python3,kivy/requirements = python3,kivy,google-generativeai/' buildozer.spec
+
+    - name: Build APK with Buildozer
+      run: yes | buildozer -v android debug
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Gemini-Android-APK
+        path: bin/*.apk
